@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Impact Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            border: 4px solid white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .card-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+
+    <div class="min-h-screen p-4 md:p-12">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Header -->
+            <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+                        The Rupee Ripple Effect
+                    </h1>
+                    <p class="text-lg text-slate-600 max-w-2xl leading-relaxed">
+                        Adjust the exchange rate to see how the global value of the Rupee dictates your salary, startup health, and gadget prices.
+                    </p>
+                </div>
+                <button onclick="resetToBaseline()" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    Reset to Baseline
+                </button>
+            </header>
+
+            <!-- Controller -->
+            <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-100 p-8 mb-10">
+                <div class="flex flex-col lg:flex-row items-center gap-10">
+                    <div class="flex-1 w-full">
+                        <div class="flex justify-between items-center mb-6">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                Exchange Rate ($1 USD to INR)
+                            </label>
+                            <span id="status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+                                Baseline Stability
+                            </span>
+                        </div>
+                        
+                        <input 
+                            type="range" 
+                            min="75" 
+                            max="95" 
+                            step="0.1" 
+                            value="83" 
+                            id="rate-slider"
+                            class="w-full h-3 bg-slate-100 rounded-xl appearance-none cursor-pointer accent-indigo-600 mb-4"
+                        >
+                        
+                        <div class="flex justify-between text-sm font-bold text-slate-400">
+                            <span>₹75.0</span>
+                            <span>₹80.0</span>
+                            <span class="text-indigo-500">₹83.0 (Base)</span>
+                            <span>₹90.0</span>
+                            <span>₹95.0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-20 transition duration-1000"></div>
+                        <div class="relative bg-white border border-slate-100 rounded-2xl p-8 text-center min-w-[240px]">
+                            <div id="rate-display" class="text-5xl font-black text-slate-800 tracking-tighter">
+                                ₹83.0
+                            </div>
+                            <div class="text-slate-400 font-bold mt-2 flex items-center justify-center gap-2">
+                                <i data-lucide="dollar-sign" class="w-4 h-4 text-indigo-500"></i>
+                                <span>PER $1.00 USD</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <!-- Salary Card -->
+                <div class="bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm hover:shadow-md transition-all flex flex-col">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="briefcase"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Global Career</h3>
+                    <p class="text-slate-500 text-sm mb-8 leading-relaxed">
+                        Your global "hiring value" shifts daily based on currency competitive indexes.
+                    </p>
+                    
+                    <div id="salary-impact-box" class="mt-auto p-5 rounded-2xl border bg-slate-50 border-slate-100 card-transition">
+                        <div class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">
+                            Talent Index
+                        </div>
+                        <div id="salary-impact-value" class="text-2xl font-black text-slate-600">
+                            Normal
+                        </div>
+                        <p id="salary-impact-desc" class="text-xs text-slate-500 mt-2 font-medium">
+                            Standard hiring conditions based on local market demand.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Startup Card -->
+                <div class="bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm hover:shadow-md transition-all flex flex-col">
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="rocket"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Startup Runway</h3>
+                    <p class="text-slate-500 text-sm mb-8 leading-relaxed">
+                        Indian startups paying for AWS, Slack, or Google Workspace in US Dollars.
+                    </p>
+                    
+                    <div id="startup-impact-box" class="mt-auto p-5 rounded-2xl border bg-slate-50 border-slate-100 card-transition">
+                        <div class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">
+                            Operational Burn
+                        </div>
+                        <div id="startup-impact-value" class="text-2xl font-black text-slate-600">
+                            Stable
+                        </div>
+                        <p id="startup-impact-desc" class="text-xs text-slate-500 mt-2 font-medium">
+                            Monthly server and software bills are at baseline expectations.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tech Price Card -->
+                <div class="bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm hover:shadow-md transition-all flex flex-col">
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="smartphone"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Gadget Prices</h3>
+                    <p class="text-slate-500 text-sm mb-8 leading-relaxed">
+                        The price of iPhones and MacBooks includes a "currency buffer" for stability.
+                    </p>
+                    
+                    <div id="tech-impact-box" class="mt-auto p-5 rounded-2xl border bg-slate-50 border-slate-100 card-transition">
+                        <div class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">
+                            Estimated MRP Shift
+                        </div>
+                        <div id="tech-impact-value" class="text-2xl font-black text-slate-600">
+                            No Change
+                        </div>
+                        <p id="tech-impact-desc" class="text-xs text-slate-500 mt-2 font-medium">
+                            Retail prices follow the standard global launch pricing.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insight Box -->
+            <div id="footer-insight" class="mt-12 bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-indigo-500 p-2.5 rounded-xl">
+                            <i data-lucide="info" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <h4 class="text-xl font-bold">The Lesson: Macroeconomics 101</h4>
+                    </div>
+                    <p id="lesson-text" class="text-slate-300 text-lg leading-relaxed mb-6 max-w-3xl">
+                        A stable Rupee allows businesses to plan for the long term without fear of sudden cost spikes.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <span class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-bold border border-white/10 uppercase tracking-widest">Global Trade Balance</span>
+                        <span class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-bold border border-white/10 uppercase tracking-widest">Import Costs</span>
+                    </div>
+                </div>
+            </div>
+            
+            <footer class="mt-12 text-center text-slate-400 text-xs pb-10 uppercase tracking-widest font-semibold">
+                Interactive Learning Project &bull; Economics Curriculum
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        const slider = document.getElementById('rate-slider');
+        const rateDisplay = document.getElementById('rate-display');
+        const statusBadge = document.getElementById('status-badge');
+        const lessonText = document.getElementById('lesson-text');
+
+        const baseRate = 83.0;
+
+        function updateUI() {
+            const currentRate = parseFloat(slider.value);
+            const diff = currentRate - baseRate;
+            
+            // Update rate display
+            rateDisplay.innerText = `₹${currentRate.toFixed(1)}`;
+
+            // Determine State
+            const isWeakening = currentRate > baseRate;
+            const isStrengthening = currentRate < baseRate;
+            const isBaseline = currentRate === baseRate;
+
+            // 1. Status Badge
+            if (isWeakening) {
+                statusBadge.innerText = 'Rupee Depreciating';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700';
+            } else if (isStrengthening) {
+                statusBadge.innerText = 'Rupee Appreciating';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700';
+            } else {
+                statusBadge.innerText = 'Baseline Stability';
+                statusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600';
+            }
+
+            // 2. Calculation Logic
+            const salaryImpact = (Math.abs(diff) * 1.2).toFixed(1);
+            const cloudCostImpact = (Math.abs(diff) * 1.5).toFixed(1);
+            const iphonePriceImpact = Math.round(Math.abs(diff) * 500).toLocaleString();
+
+            // 3. Update Salary Card
+            updateCard(
+                'salary', 
+                isWeakening ? `+${salaryImpact}% Better` : isStrengthening ? `${salaryImpact}% Worse` : 'Normal',
+                isWeakening ? 'positive' : isStrengthening ? 'negative' : 'neutral',
+                isWeakening 
+                    ? 'Your services are cheaper for US clients, potentially driving higher demand for Indian talent.' 
+                    : isStrengthening 
+                    ? 'Indian talent becomes expensive globally. Firms may look at cheaper markets elsewhere.'
+                    : 'Standard hiring conditions based on local market demand.'
+            );
+
+            // 4. Update Startup Card
+            updateCard(
+                'startup', 
+                isWeakening ? `Costs up ${cloudCostImpact}%` : isStrengthening ? `Costs down ${cloudCostImpact}%` : 'Stable',
+                isWeakening ? 'negative' : isStrengthening ? 'positive' : 'neutral',
+                isWeakening 
+                    ? 'Infrastructure bills (AWS/Google) increase, forcing startups to burn more cash to maintain operations.' 
+                    : isStrengthening 
+                    ? 'Cloud expenses drop, giving companies more capital to reinvest in growth and hiring.'
+                    : 'Monthly server and software bills are at baseline expectations.'
+            );
+
+            // 5. Update Tech Card
+            updateCard(
+                'tech', 
+                isWeakening ? `+ ₹${iphonePriceImpact}` : isStrengthening ? `- ₹${iphonePriceImpact}` : 'No Change',
+                isWeakening ? 'negative' : isStrengthening ? 'positive' : 'neutral',
+                isWeakening 
+                    ? 'Tech giants increase prices or add safety buffers to protect their margins from currency loss.' 
+                    : isStrengthening 
+                    ? 'Imports become cheaper. Companies may offer discounts or aggressive seasonal pricing.'
+                    : 'Retail prices follow the standard global launch pricing.'
+            );
+
+            // 6. Update Lesson Text
+            if (isWeakening) {
+                lessonText.innerText = "Today, your salary might be more attractive to a global boss, but the laptop you need to do your job just got more expensive. A weakening currency helps exporters but hurts consumers.";
+            } else if (isStrengthening) {
+                lessonText.innerText = "Your savings can buy more global tech and imports are cheaper, but the Indian IT industry might face tougher competition because your skills are now 'more expensive' in Dollars.";
+            } else {
+                lessonText.innerText = "A stable Rupee allows businesses to plan for the long term without fear of sudden cost spikes.";
+            }
+        }
+
+        function updateCard(id, value, type, desc) {
+            const box = document.getElementById(`${id}-impact-box`);
+            const valEl = document.getElementById(`${id}-impact-value`);
+            const descEl = document.getElementById(`${id}-impact-desc`);
+
+            valEl.innerText = value;
+            descEl.innerText = desc;
+
+            if (type === 'positive') {
+                box.className = 'mt-auto p-5 rounded-2xl border bg-emerald-50 border-emerald-100 card-transition';
+                valEl.className = 'text-2xl font-black text-emerald-600';
+            } else if (type === 'negative') {
+                box.className = 'mt-auto p-5 rounded-2xl border bg-rose-50 border-rose-100 card-transition';
+                valEl.className = 'text-2xl font-black text-rose-600';
+            } else {
+                box.className = 'mt-auto p-5 rounded-2xl border bg-slate-50 border-slate-100 card-transition';
+                valEl.className = 'text-2xl font-black text-slate-600';
+            }
+        }
+
+        function resetToBaseline() {
+            slider.value = 83;
+            updateUI();
+        }
+
+        slider.addEventListener('input', updateUI);
+    </script>
+</body>
+</html>
